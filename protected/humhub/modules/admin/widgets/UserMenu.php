@@ -79,6 +79,7 @@ class UserMenu extends TabMenu
             'isVisible' => Yii::$app->user->can(ManageGroups::class)
         ]));
 
+
         parent::init();
     }
 

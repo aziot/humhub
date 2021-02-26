@@ -339,7 +339,7 @@ class SpaceModelMembership extends Behavior
             switch ($membership->status) {
                 case Membership::STATUS_APPLICANT:
                     // If user is an applicant of this space add user and return.
-                    $this->addMember(Yii::$app->user->id);
+                    $this->addMember($userId);
                 case Membership::STATUS_MEMBER:
                     // If user is already a member just ignore the invitation.
                     return;
@@ -404,7 +404,7 @@ class SpaceModelMembership extends Behavior
         $user = User::findOne(['id' => $userId]);
         $membership = $this->getMembership($userId);
 
-        if ($membership == null) {
+        if ($membership === null) {
             // Add Membership
             $membership = new Membership([
                 'space_id' => $this->owner->id,

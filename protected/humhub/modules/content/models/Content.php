@@ -57,7 +57,7 @@ use yii\helpers\Url;
  * @property integer $object_id
  * @property integer $visibility
  * @property integer $pinned
- * @property string $archived
+ * @property integer $archived
  * @property string $created_at
  * @property integer $created_by
  * @property string $updated_at
@@ -815,7 +815,7 @@ class Content extends ActiveRecord implements Movable, ContentOwner
         }
 
         // Check system admin can see all content module configuration
-        if ($user->isSystemAdmin() && Yii::$app->getModule('content')->adminCanViewAllContent) {
+        if ($user->canViewAllContent()) {
             return true;
         }
 
