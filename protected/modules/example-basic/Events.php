@@ -22,7 +22,7 @@ class Events
         $topMenuWidget = $event->sender;
 
         $topMenuWidget->addEntry(new MenuLink([
-            'label' => Yii::t('ExampleBasicModule.base', 'Example'),
+            'label' => Yii::t('ExampleBasicModule.base', 'Create a book space'),
             'icon' => 'anchor',
             'url' => ['/example-basic/index'],
             'sortOrder' => 99999,
