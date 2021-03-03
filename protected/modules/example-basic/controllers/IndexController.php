@@ -57,19 +57,28 @@ class IndexController extends Controller
 	public function createBookSpace($model, &$space_model)
 	{
 		$service_url = 'https://www.ziotopoulos.space/api/v1/space';
-		$params = array(
-			'foo' => 'bar');
-		$url = $service_url . '?' . http_build_query($params);
+		$data = array(
+			'name' => $model->title,
+			'visibility' => 1,
+		        'join_policy' => 1);
+		$url = $service_url;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_USERPWD, "admin:Q]Gc=5gffjS.a9UX");
+		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api';
+		curl_setopt($ch, CURLOPT_USERPWD, "admin:$rest_api");
 		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+			
 		$response = json_decode(curl_exec($ch), true);
 		curl_close($ch);
 		
-		if(array_key_exists('total', $response)) {
-			$space_model->total = $response['total'];
+		if(array_key_exists('id', $response)) {
+			$space_model->id = $response['id'];
+			$space_model->guid = $response['guid'];
+			$space_model->name = $response['name'];
+			$space_model->description = $response['description'];
+			$space_model->url = $response['url'];
 			return true;
 		}
 		return false;

@@ -7,12 +7,16 @@ use yii\base\Model;
 
 class SpaceForm extends Model
 {
-    public $total;
+    public $id;
+    public $guid;
+    public $name;
+    public $description;
+    public $url;
 
     public function rules()
     {
         return [
-            [['total'], 'required'],
+            [['id'], 'required'],
         ];
     }
 }
