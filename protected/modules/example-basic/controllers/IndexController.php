@@ -26,9 +26,9 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	private function setOptionsForCurlObject($url, &$ch)
+	private function setOptionsForCurlObject($url, &$handle)
 	{
-		return curl_setopt_array($ch, array(CURLOPT_URL => $url,
+		return curl_setopt_array($handle, array(CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => 1,
 			CURLOPT_HTTPAUTH => CURLAUTH_BASIC));
 	}
@@ -58,12 +58,12 @@ class IndexController extends Controller
 	private function queryKG(&$model)
 	{
 		$url = $this->getUrlToQueryKG($model->title);
-		$ch = curl_init();
-		if (!$this->setOptionsForCurlObject($url, $ch)) {
+		$handle = curl_init();
+		if (!$this->setOptionsForCurlObject($url, $handle)) {
 			return false;
 		}
-		$response = json_decode(curl_exec($ch), true);
-		curl_close($ch);
+		$response = json_decode(curl_exec($handle), true);
+		curl_close($handle);
 
 		if(array_key_exists('itemListElement', $response)) {
 			foreach($response['itemListElement'] as $element) {
@@ -90,16 +90,17 @@ class IndexController extends Controller
 	 */
 	private function callRestApi($data)
 	{
-		$ch = curl_init();
-		if (!$this->setOptionsForCurlObject(self::HUMHUB_SERVICE_URL, $ch)) {
+		$handle = curl_init();
+		if (!$this->setOptionsForCurlObject(self::HUMHUB_SERVICE_URL, $handle)) {
 			$this->console_log('Cannot set options for curl object to call the Humhub API');
 			return;
 		}
 		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api'; 
-		curl_setopt($ch, CURLOPT_USERPWD, "admin:$rest_api");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-		$response = json_decode(curl_exec($ch), true);
-		curl_close($ch);
+		curl_setopt($handle, CURLOPT_USERPWD, "admin:$rest_api");
+		curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
+		$this->console_log('Humhub query: '.http_build_query($data));
+		$response = json_decode(curl_exec($handle), true);
+		curl_close($handle);
 
 		return $response;
 	}
@@ -122,7 +123,7 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	private function createBookSpace($title, &$space_model)
+	private function createBookSpace($title)
 	{
 		$data = array(
 			'name' => $title,
@@ -131,6 +132,7 @@ class IndexController extends Controller
 		$response = $this->callRestApi($data);
 		
 		if(array_key_exists('id', $response)) {
+			$space_model = new SpaceForm();
 			$space_model->id = $response['id'];
 			$space_model->guid = $response['guid'];
 			$space_model->name = $response['name'];
@@ -138,12 +140,12 @@ class IndexController extends Controller
 			$space_model->url = $response['url'];
 
 			// Add the current user to the newly created space
-		        // TODO(aziot) Check if we can create the space directly on behalf of the user.
-	                $this->addUserToSpace($space_model->id, Yii::$app->user->identity->getId());
+			// TODO(aziot) Check if we can create the space directly on behalf of the user.
+			$this->addUserToSpace($response['id'], Yii::$app->user->identity->getId());
 
-			return true;
+			return $space_model;
 		} else {
-		  $this->console_log('Response missing id');
+			$this->console_log('Response missing id');
 		}
 		return false;
 	}
@@ -159,8 +161,8 @@ class IndexController extends Controller
 
 		if ($model->load(Yii::$app->request->post()) && $model->validate()) {
 			if ($this->queryKG($model)) {
-				$space_model = new SpaceForm();
-				if ($this->createBookSpace($model->title, $space_model)) {
+				$space_model = $this->createBookSpace($model->title);
+				if ($space_model) {
 					return $this->render('space', ['model' => $space_model]);
 				} else {
 					return $this->render('book-confirm', ['model' => $model]);
