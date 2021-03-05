@@ -58,7 +58,6 @@ class IndexController extends Controller
 	private function queryKG(&$model)
 	{
 		$url = $this->getUrlToQueryKG($model->title);
-		$this->console_log($url);
 		$ch = curl_init();
 		if (!$this->setOptionsForCurlObject($url, $ch)) {
 			return false;
@@ -89,9 +88,11 @@ class IndexController extends Controller
 	 *
 	 * @return 
 	 */
-	private function callRestApi($data, &$ch)
+	private function callRestApi($data)
 	{
+		$ch = curl_init();
 		if (!$this->setOptionsForCurlObject(self::HUMHUB_SERVICE_URL, $ch)) {
+			$this->console_log('Cannot set options for curl object to call the Humhub API');
 			return;
 		}
 		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api'; 
@@ -108,12 +109,12 @@ class IndexController extends Controller
 	 *
 	 * @return
 	 */
-	private function addUserToSpace($space_id, $user_id, &$ch)
+	private function addUserToSpace($space_id, $user_id)
 	{
 		$data = array(
 			'id' => $space_id,
 			'userId' => $user_id);
-		$response = $this->callRestApi($data, $ch);
+		$response = $this->callRestApi($data);
 	}
 
 	/**
@@ -123,12 +124,11 @@ class IndexController extends Controller
 	 */
 	private function createBookSpace($title, &$space_model)
 	{
-		$ch = curl_init();
 		$data = array(
 			'name' => $title,
 			'visibility' => 1,
 		        'join_policy' => 1);
-		$response = $this->callRestApi($data, $ch);
+		$response = $this->callRestApi($data);
 		
 		if(array_key_exists('id', $response)) {
 			$space_model->id = $response['id'];
@@ -139,10 +139,11 @@ class IndexController extends Controller
 
 			// Add the current user to the newly created space
 		        // TODO(aziot) Check if we can create the space directly on behalf of the user.
-			curl_reset($ch);
-	                $this->addUserToSpace($space_model->id, Yii::$app->user->identity->getId(), $ch);
+	                $this->addUserToSpace($space_model->id, Yii::$app->user->identity->getId());
 
 			return true;
+		} else {
+		  $this->console_log('Response missing id');
 		}
 		return false;
 	}
