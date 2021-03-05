@@ -9,23 +9,28 @@ use humhub\components\Controller;
 
 class IndexController extends Controller
 {
+	private function console_log($output, $with_script_tags = true) {
+		$js_code = 'console.log(' . json_encode($output, JSON_HEX_TAG) . 
+			');';
+		if ($with_script_tags) {
+			$js_code = '<script>' . $js_code . '</script>';
+		}
+		echo $js_code;
+	}
 	
 	const HUMHUB_SERVICE_URL = 'https://www.ziotopoulos.space/api/v1/space';
+	const KG_SERVICE_URL = 'https://kgsearch.googleapis.com/v1/entities:search';
 	
 	/**
 	 * Sets the options for a curl object to be used for querying the API.
 	 *
 	 * @return boolean
 	 */
-	public function setOptionsForCurlObject($url, &$ch)
+	private function setOptionsForCurlObject($url, &$ch)
 	{
-		if (curl_setopt_array($ch, array(CURLOPT_URL => $url,
+		return curl_setopt_array($ch, array(CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => 1,
-			CURLOPT_HTTPAUTH => CURLAUTH_BASIC)) ) {
-			return true;
-		}
-
-		return false;
+			CURLOPT_HTTPAUTH => CURLAUTH_BASIC));
 	}
 	
 	/**
@@ -33,7 +38,7 @@ class IndexController extends Controller
 	 *
 	 * @return string
 	 */
-	public function getUrlToQueryKG($title)
+	private function getUrlToQueryKG($title)
 	{
 		require '/var/www/humhub/protected/modules/example-basic/controllers/.api_key';
 		$params = array(
@@ -41,7 +46,7 @@ class IndexController extends Controller
 			'limit' => 10, 
 			'indent' => TRUE, 
 			'key' => $api_key);
-		return self::HUMHUB_SERVICE_URL . '?' . http_build_query($params);
+		return self::KG_SERVICE_URL . '?' . http_build_query($params);
 	}
 	
 	/**
@@ -50,9 +55,10 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	public function queryKG(&$model)
+	private function queryKG(&$model)
 	{
 		$url = $this->getUrlToQueryKG($model->title);
+		$this->console_log($url);
 		$ch = curl_init();
 		if (!$this->setOptionsForCurlObject($url, $ch)) {
 			return false;
@@ -83,7 +89,7 @@ class IndexController extends Controller
 	 *
 	 * @return 
 	 */
-	public function callRestApi($data, &$ch)
+	private function callRestApi($data, &$ch)
 	{
 		if (!$this->setOptionsForCurlObject(self::HUMHUB_SERVICE_URL, $ch)) {
 			return;
@@ -93,6 +99,8 @@ class IndexController extends Controller
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
 		$response = json_decode(curl_exec($ch), true);
 		curl_close($ch);
+
+		return $response;
 	}
 	
 	/**
@@ -100,12 +108,12 @@ class IndexController extends Controller
 	 *
 	 * @return
 	 */
-	public function addUserToSpace($space_id, $user_id, &$ch)
+	private function addUserToSpace($space_id, $user_id, &$ch)
 	{
 		$data = array(
 			'id' => $space_id,
 			'userId' => $user_id);
-		$this->callRestApi($data, $ch);
+		$response = $this->callRestApi($data, $ch);
 	}
 
 	/**
@@ -113,14 +121,14 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	public function createBookSpace($title, &$space_model)
+	private function createBookSpace($title, &$space_model)
 	{
 		$ch = curl_init();
 		$data = array(
 			'name' => $title,
 			'visibility' => 1,
 		        'join_policy' => 1);
-		$this->callRestApi($data, $ch);
+		$response = $this->callRestApi($data, $ch);
 		
 		if(array_key_exists('id', $response)) {
 			$space_model->id = $response['id'];
