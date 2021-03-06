@@ -97,6 +97,7 @@ class IndexController extends Controller
 		}
 		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api'; 
 		curl_setopt($handle, CURLOPT_USERPWD, "admin:$rest_api");
+		curl_setopt($handle, CURLOPT_POST, true);
 		curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
 		$this->console_log('Humhub query: '.http_build_query($data));
 		$response = json_decode(curl_exec($handle), true);
@@ -112,10 +113,21 @@ class IndexController extends Controller
 	 */
 	private function addUserToSpace($space_id, $user_id)
 	{
-		$data = array(
+		$url = 'https://www.ziotopoulos.space/api/v1/space/'.$space_id.'/membership/'.$user_id;
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api';
+		curl_setopt($ch, CURLOPT_USERPWD, "admin:$rest_api");
+		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($ch, CURLOPT_POST, true);
+
+		$response = json_decode(curl_exec($ch), true);
+		curl_close($ch);
+		/* $data = array(
 			'id' => $space_id,
 			'userId' => $user_id);
-		$response = $this->callRestApi($data);
+		$response = $this->callRestApi($data); */
 	}
 
 	/**
