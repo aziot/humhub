@@ -67,7 +67,13 @@ class IndexController extends Controller
 
 		if(array_key_exists('itemListElement', $response)) {
 			foreach($response['itemListElement'] as $element) {
+				if (!array_key_exists('result', $element)) {
+					continue;
+				}
 				$result = $element['result'];
+				if (!array_key_exists('@type', $result) or !in_array("Book", $result['@type'])) {
+					continue;
+				}
 				if (array_key_exists('name', $result)) {
 					$model->name = $result['name'];
 				}
@@ -171,15 +177,15 @@ class IndexController extends Controller
 	 */
 	public function actionIndex()
 	{
-		$model = new BookForm();
+		$book_model = new BookForm();
 
-		if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-			if ($this->queryKG($model)) {
-				$space_model = $this->createBookSpace($model->title, $model->description);
+		if ($book_model->load(Yii::$app->request->post()) && $book_model->validate()) {
+			if ($this->queryKG($book_model)) {
+				$space_model = $this->createBookSpace($book_model->title, $book_model->description);
 				if ($space_model) {
 					return $this->render('space', ['model' => $space_model]);
 				} else {
-					return $this->render('book-confirm', ['model' => $model]);
+					return $this->render('book-confirm', ['model' => $book_model]);
 				}
 			} else {
 				// TODO(aziot) put a page with an error that the space could not be created.
@@ -187,7 +193,7 @@ class IndexController extends Controller
 			}
 		} else {
 			// either the page is initially displayed or there is some validation error
-			return $this->render('book', ['model' => $model]);
+			return $this->render('book', ['model' => $book_model]);
 		}
 	}
 }
