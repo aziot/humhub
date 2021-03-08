@@ -136,10 +136,11 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	private function createBookSpace($title)
+	private function createBookSpace($title, $description)
 	{
 		$data = array(
 			'name' => $title,
+			'description' => $description,
 			'visibility' => 1,
 		        'join_policy' => 1);
 		$response = $this->callRestApi($data);
@@ -174,7 +175,7 @@ class IndexController extends Controller
 
 		if ($model->load(Yii::$app->request->post()) && $model->validate()) {
 			if ($this->queryKG($model)) {
-				$space_model = $this->createBookSpace($model->title);
+				$space_model = $this->createBookSpace($model->title, $model->description);
 				if ($space_model) {
 					return $this->render('space', ['model' => $space_model]);
 				} else {
