@@ -26,7 +26,7 @@ class IndexController extends Controller
 	 *
 	 * @return boolean
 	 */
-	private function setOptionsForCurlObject($url, &$handle)
+	private function setOptionsForCurlHandle($url, &$handle)
 	{
 		return curl_setopt_array($handle, array(CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => 1,
@@ -59,7 +59,7 @@ class IndexController extends Controller
 	{
 		$url = $this->getUrlToQueryKG($model->title);
 		$handle = curl_init();
-		if (!$this->setOptionsForCurlObject($url, $handle)) {
+		if (!$this->setOptionsForCurlHandle($url, $handle)) {
 			return false;
 		}
 		$response = json_decode(curl_exec($handle), true);
@@ -91,7 +91,7 @@ class IndexController extends Controller
 	private function callRestApi($data)
 	{
 		$handle = curl_init();
-		if (!$this->setOptionsForCurlObject(self::HUMHUB_SERVICE_URL, $handle)) {
+		if (!$this->setOptionsForCurlHandle(self::HUMHUB_SERVICE_URL, $handle)) {
 			$this->console_log('Cannot set options for curl object to call the Humhub API');
 			return;
 		}
@@ -115,7 +115,7 @@ class IndexController extends Controller
 	{
 		$url = 'https://www.ziotopoulos.space/api/v1/space/'.$space_id.'/membership/'.$user_id;
 		$handle = curl_init();
-		if (!$this->setOptionsForCurlObject($url, $handle)) {
+		if (!$this->setOptionsForCurlHandle($url, $handle)) {
 			return;
 		}
 
