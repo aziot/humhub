@@ -136,6 +136,40 @@ class IndexController extends Controller
 			'userId' => $user_id);
 		$response = $this->callRestApi($data); */
 	}
+	
+	/**
+	 * Add tag to space.
+	 *
+	 * @return
+	 */
+	private function addTagToSpace($tag, $space_model)
+	{
+		$handle = curl_init();
+
+		$data = array("tags" => "book");
+		$dataEncoded = http_build_query($data);
+		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($handle, CURLOPT_CUSTOMREQUEST, "PUT");
+		curl_setopt($handle, CURLOPT_POSTFIELDS, $dataEncoded);
+		$username = 'admin';
+		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api';
+		$password = $rest_api;
+		curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($handle, CURLOPT_USERPWD, "$username:$password");
+
+		$headers = array(
+			"Content-Type: application/x-www-form-urlencoded",
+			"Accept: */*",
+			"Content-Length: " . strlen($dataEncoded)
+		);
+		curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
+
+		$url = self::HUMHUB_SERVICE_URL.'/'.$space_model->id;
+		curl_setopt($handle, CURLOPT_URL, $url);
+
+		$response = json_decode(curl_exec($handle), true);
+		curl_close($handle);
+	}
 
 	/**
 	 * Creates a space related to the book.
@@ -158,6 +192,9 @@ class IndexController extends Controller
 			$space_model->name = $response['name'];
 			$space_model->description = $response['description'];
 			$space_model->url = $response['url'];
+
+			// Add the 'book' tag to the newly created space.
+			$this->addTagToSpace('book', $space_model);
 
 			// Add the current user to the newly created space
 			// TODO(aziot) Check if we can create the space directly on behalf of the user.
