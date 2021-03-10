@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'fixtures' => [
-        'default'
-    ]
+	'fixtures' => [
+		'default'
+	],
+	'humhub_root' => '/var/www/humhub',
 ];
