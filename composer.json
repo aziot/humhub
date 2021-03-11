@@ -82,6 +82,7 @@
         "codeception/module-yii2": "^1.0",
         "codeception/specify": "^1.4",
         "codeception/verify": "^1.5",
+        "hoa/console": "^3.17",
         "phpcompatibility/php-compatibility": "*",
         "symfony/browser-kit": ">=2.7 <=4.2.4",
         "yiisoft/yii2-debug": "~2.1.0",
