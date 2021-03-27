@@ -225,6 +225,10 @@ class IndexController extends Controller
 					return $this->render('book-confirm', ['model' => $book_model]);
 				}
 			} else {
+				Yii::$app->queue->push(new DownloadJob([
+					'url' => 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_FC_logo.svg/170px-Olympiacos_FC_logo.svg.png',
+					'file' => '/tmp/image.jpg',
+				]));
 				// TODO(aziot) put a page with an error that the space could not be created.
 				;
 			}
