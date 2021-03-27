@@ -6,10 +6,26 @@
  * @see http://docs.humhub.org/dev-environment.html
  */
 return [
+	'bootstrap' => [
+		'queue', // The component registers its own console commands
+	],
 	'components' => [
 		'urlManager' => [
 			'showScriptName' => false,
 			'enablePrettyUrl' => true,
+		],
+		'redis' => [
+			'class' => 'yii\redis\Connection',
+			'hostname' => 'localhost',
+			'port' => 6379,
+			'database' => 0,
+			'retries' => 1,
+		],
+		'queue' => [
+			'class' => 'humhub\modules\queue\driver\Redis',
+			// Other driver options
+			'redis' => 'redis', // Redis connection component or its config
+			'channel' => 'queue', // Queue channel key
 		],
 	]
 ];
