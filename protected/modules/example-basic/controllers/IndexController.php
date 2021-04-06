@@ -6,6 +6,7 @@ use Yii;
 use acmeCorp\humhub\modules\models\BookForm;
 use acmeCorp\humhub\modules\models\SpaceForm;
 use humhub\components\Controller;
+use humhub\modules\content\models\Content;
 
 class IndexController extends Controller
 {
@@ -181,7 +182,7 @@ class IndexController extends Controller
 		$data = array(
 			'name' => $title,
 			'description' => $description,
-			'visibility' => 1,
+			'visibility' => Content::VISIBILITY_PRIVATE,
 		        'join_policy' => 1);
 		$response = $this->callRestApi($data);
 		
