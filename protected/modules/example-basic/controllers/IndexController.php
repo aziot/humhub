@@ -220,17 +220,22 @@ class IndexController extends Controller
 			if ($this->queryKG($book_model)) {
 				$space_model = $this->createBookSpace($book_model->title, $book_model->description);
 				if ($space_model) {
-					return $this->render('space', ['model' => $space_model]);
+				       $form = $this->render('space', ['model' => $space_model]);
+				       Yii::$app->queue->push(new NotifyFriendsOnNewSpaceJob(Yii::$app->user->id, $space_model->id));
+				       return $form;
 				} else {
 					return $this->render('book-confirm', ['model' => $book_model]);
 				}
 			} else {
-				Yii::$app->queue->push(new DownloadJob([
-					'url' => 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_FC_logo.svg/170px-Olympiacos_FC_logo.svg.png',
-					'file' => '/tmp/image.jpg',
-				]));
+				# Hardcoding the space id for the purpose of the MVP.
+				# TODO(aziot): use the id of the newly created space.
+				Yii::$app->queue->push(new NotifyFriendsOnNewSpaceJob(Yii::$app->user->id, 40));
+
 				// TODO(aziot) put a page with an error that the space could not be created.
-				;
+				#Yii::$app->queue->push(new DownloadJob([
+				#	'url' => 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_FC_logo.svg/170px-Olympiacos_FC_logo.svg.png',
+				#	'file' => '/tmp/image.jpg',
+				# ]));
 			}
 		} else {
 			// either the page is initially displayed or there is some validation error
