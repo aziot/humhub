@@ -132,10 +132,27 @@ class IndexController extends Controller
 
 		$response = json_decode(curl_exec($handle), true);
 		curl_close($handle);
-		/* $data = array(
-			'id' => $space_id,
-			'userId' => $user_id);
-		$response = $this->callRestApi($data); */
+	}
+	
+	/** 
+	 * Add a user as admin to a space.
+	 */
+	private function addUserAsAdmin($space_id, $user_id)
+	{
+		$url = 'https://www.ziotopoulos.space/api/v1/space/'.$space_id.'/membership/'.$user_id.'/role';
+		$handle = curl_init();
+		if (!$this->setOptionsForCurlHandle($url, $handle)) {
+			return;
+		}
+
+		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api';
+		curl_setopt($handle, CURLOPT_USERPWD, "admin:$rest_api");
+		curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'PATCH');
+		$data = array('role' => 'admin');
+		curl_setopt($handle, CURLOPT_POSTFIELDS, arrary('role' => 'moderator'));
+
+		$response = json_decode(curl_exec($handle), true);
+		curl_close($handle);
 	}
 	
 	/**
@@ -197,9 +214,10 @@ class IndexController extends Controller
 			// Add the 'book' tag to the newly created space.
 			$this->addTagToSpace('book', $space_model);
 
-			// Add the current user to the newly created space
+			// Add the current user to the newly created space and makr it as admin
 			// TODO(aziot) Check if we can create the space directly on behalf of the user.
-			$this->addUserToSpace($response['id'], Yii::$app->user->identity->getId());
+			$this->addUserToSpace($response['id'], Yii::$app->user->id);
+			$this->addUserAsAdmin($response['id'], Yii::$app->user->id);
 
 			return $space_model;
 		} else {
