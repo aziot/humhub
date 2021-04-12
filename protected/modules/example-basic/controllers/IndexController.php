@@ -137,7 +137,7 @@ class IndexController extends Controller
 	/** 
 	 * Add a user as admin to a space.
 	 */
-	private function addUserAsAdmin($space_id, $user_id)
+	private function makeUserAnAdmin($space_id, $user_id)
 	{
 		$url = 'https://www.ziotopoulos.space/api/v1/space/'.$space_id.'/membership/'.$user_id.'/role';
 		$handle = curl_init();
@@ -148,8 +148,7 @@ class IndexController extends Controller
 		require '/var/www/humhub/protected/modules/example-basic/controllers/.rest_api';
 		curl_setopt($handle, CURLOPT_USERPWD, "admin:$rest_api");
 		curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'PATCH');
-		$data = array('role' => 'admin');
-		curl_setopt($handle, CURLOPT_POSTFIELDS, arrary('role' => 'moderator'));
+		curl_setopt($handle, CURLOPT_POSTFIELDS, array('role' => 'admin'));
 
 		$response = json_decode(curl_exec($handle), true);
 		curl_close($handle);
@@ -199,7 +198,7 @@ class IndexController extends Controller
 		$data = array(
 			'name' => $title,
 			'description' => $description,
-			'visibility' => Space::VISIBILITY_NONE,
+			'visibility' => Space::VISIBILITY_REGISTERED_ONLY,
 		        'join_policy' => Space::JOIN_POLICY_APPLICATION);
 		$response = $this->callRestApi($data);
 		
@@ -214,10 +213,9 @@ class IndexController extends Controller
 			// Add the 'book' tag to the newly created space.
 			$this->addTagToSpace('book', $space_model);
 
-			// Add the current user to the newly created space and makr it as admin
 			// TODO(aziot) Check if we can create the space directly on behalf of the user.
 			$this->addUserToSpace($response['id'], Yii::$app->user->id);
-			$this->addUserAsAdmin($response['id'], Yii::$app->user->id);
+			$this->makeUserAnAdmin($response['id'], Yii::$app->user->id);
 
 			return $space_model;
 		} else {
@@ -246,15 +244,7 @@ class IndexController extends Controller
 					return $this->render('book-confirm', ['model' => $book_model]);
 				}
 			} else {
-				# Hardcoding the space id for the purpose of the MVP.
-				# TODO(aziot): use the id of the newly created space.
-				Yii::$app->queue->push(new NotifyFriendsOnNewSpaceJob(Yii::$app->user->id, 40));
-
 				// TODO(aziot) put a page with an error that the space could not be created.
-				#Yii::$app->queue->push(new DownloadJob([
-				#	'url' => 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_FC_logo.svg/170px-Olympiacos_FC_logo.svg.png',
-				#	'file' => '/tmp/image.jpg',
-				# ]));
 			}
 		} else {
 			// either the page is initially displayed or there is some validation error
